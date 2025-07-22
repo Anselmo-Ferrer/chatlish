@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String      @id @default(uuid())
+  email       String      @unique
+  name        String?
+  password    String?
+  chats       Chat[]
+  flashcards  Flashcard[]
+  quizzes     Quiz[]
+  spreadsheet Spreadsheet?
+  note        Note?
+  overview    Overview?
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  userId    String  
+  messages  Message[]
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  role      String
+  message   String
+  timeStamp DateTime
+  chat      Chat     @relation(fields: [chatId], references: [id])
+}
+
+model Flashcard {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String  
+  question  String
+  answer    String
+  stats     String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Quiz {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String  
+  question  String
+  answer    String
+  optionA   String
+  optionB   String
+  optionC   String
+  optionD   String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Spreadsheet {
+  id            String   @id @default(uuid()) @unique
+  groupId       String
+  userId        String   @unique 
+  question      String
+  word          String
+  translation   String
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Note {
+  id            String   @id @default(uuid()) @unique
+  userId        String   @unique
+  content       String
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Overview {
+  id            String   @id @default(uuid()) @unique
+  userId        String   @unique
+  englishLevel  String
+  strengths     String
+  weaknesses    String
+  user          User     @relation(fields: [userId], references: [id])
+}
