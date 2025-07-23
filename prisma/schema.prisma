@@ -21,10 +21,12 @@ model User {
 }
 
 model Chat {
-  id        String   @id @default(uuid())
-  userId    String  
-  messages  Message[]
-  user      User     @relation(fields: [userId], references: [id])
+  id          String   @id @default(uuid())
+  userId      String  
+  name        String
+  description String
+  messages    Message[]
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Message {
