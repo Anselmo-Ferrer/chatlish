@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsChatDots } from 'react-icons/bs'
 import { IoMdSend } from 'react-icons/io'
 import { FaTimes } from 'react-icons/fa'
@@ -8,37 +8,38 @@ import Image from "next/image";
 import profileImage from "@/assets/imageProfile.jpeg"
 import { ScrollArea } from "./ui/scroll-area";
 
-export default function Chat() {
-  // const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([])
-    const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([
-  { role: 'user', content: 'Oi, tudo bem?' },
-  { role: 'ai', content: 'Olá! Estou bem, obrigado. Como posso te ajudar hoje?' },
-  { role: 'user', content: 'Me explica o que é React?' },
-  { role: 'ai', content: 'Claro! React é uma biblioteca JavaScript para construir interfaces de usuário de forma declarativa e baseada em componentes.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' },
-  { role: 'user', content: 'Legal! E o Next.js?' },
-  { role: 'ai', content: 'Next.js é um framework baseado em React que oferece renderização do lado do servidor, geração estática e outras funcionalidades modernas para aplicações web.' }
-])
+type ChatProps = {
+  userId: string
+  chatId: string | null
+}
+
+export default function Chat({ userId, chatId }: ChatProps) {
+  const [messages, setMessages] = useState<{ role: 'user' | 'ai'; message: string }[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    const handleGetMessages = async () => {
+       if (!chatId) return console.warn('userId não encontrado na URL')
+
+      const response = await fetch(`/api/messages?chatId=${chatId}`)
+      const data = await response.json()
+      console.log(data)
+      setMessages(data.messages)
+    }
+
+    handleGetMessages()
+  }, [chatId])
 
   const sendMessage = async () => {
     if (!input.trim()) return
 
-    const userMessage = { role: 'user' as const, content: input }
+    const userMessage = { role: 'user' as const, message: input }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setLoading(true)
+
+    await saveMessage(userMessage)
 
     try {
       const res = await fetch('/api/chat-ai', {
@@ -48,16 +49,31 @@ export default function Chat() {
       })
 
       const data = await res.json()
-      const aiMessage = { role: 'ai' as const, content: data.answer }
+      const aiMessage = { role: 'ai' as const, message: data.answer }
+
       setMessages((prev) => [...prev, aiMessage])
+
+      await saveMessage(aiMessage)
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'ai', content: 'Erro ao responder.' }])
+      setMessages((prev) => [...prev, { role: 'ai', message: 'Erro ao responder.' }])
     } finally {
       setLoading(false)
     }
   }
 
+  const saveMessage = async ({ role, message }: { role: 'user' | 'ai', message: string }) => {
+    if (!chatId || !userId) return
 
+    await fetch('/api/save-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        role,
+        chatId,
+      }),
+    })
+  }
 
   return (
     <div className="w-1/2 flex flex-col py-5 gap-3">
@@ -71,7 +87,7 @@ export default function Chat() {
                 : 'flex-row-reverse self-start mr-auto items-start text-white'
             }`}
           >
-            {msg.content}
+            {msg.message}
             <Image className="w-8 h-8 rounded-full" src={profileImage} alt="profile image"/>
           </div>
         ))}
