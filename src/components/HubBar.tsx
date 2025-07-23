@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 
-export default function HubBar() {
-  const tabs = ["SpreadSheet","Flashcards", "Quizzes", "Phrases", "Notes", "Overview"];
+type Props = {
+  onTabChange: (tab: string) => void
+}
+
+export default function HubBar({onTabChange}: Props) {
+  const tabs = ["SpreadSheet","Flashcards", "Quizzes", "Phrases", "Overview"];
   const [activeTab, setActiveTab] = useState("Flashcards");
+
+  const handleActiveTab = (tab: string) => {
+    setActiveTab(tab)
+    onTabChange(tab)
+  }
 
   return (
     <div className="flex gap-2 bg-[#181818] text-black px-2 py-1 rounded-3xl border border-[#2a2a2a]">
@@ -21,8 +30,8 @@ export default function HubBar() {
             }`}
           >
             <button
-              onClick={() => setActiveTab(tab)}
-              className={`w-full h-full px-2 py-2 text-sm font-medium rounded-full transition-all duration-150 cursor-pointer ${
+              onClick={() => handleActiveTab(tab)}
+              className={`w-full h-full px-4 py-2 text-sm font-medium rounded-full transition-all duration-150 cursor-pointer ${
                 isActive
                   ? "bg-gradient-to-tr from-[#141414] to-[#1a1a1a] text-white"
                   : "bg-transparent text-gray-500 hover:text-white"
