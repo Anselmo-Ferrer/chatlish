@@ -2,28 +2,26 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-
   const { searchParams } = new URL(req.url)
-  const userId = searchParams.get('userId');
+  const chatId = searchParams.get('chatId');
 
-  if (!userId) {
+  if (!chatId) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
   try {
-    const chats = await prisma.chat.findMany({
-      where: { userId },
+    const messages = await prisma.message.findMany({
+      where: { chatId },
       select: {
-        id: true,
-        name: true,
-        description: true,
-      },
+        message: true,
+        role: true,
+        timeStamp: true
+      }
     })
 
-    return NextResponse.json({ chats })
+    return NextResponse.json({ messages })
   } catch (error) {
     console.error('Erro ao buscar resumos:', error)
     return NextResponse.json({ error: 'Erro interno ao buscar resumos' }, { status: 500 })
   }
-
 }
