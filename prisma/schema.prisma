@@ -13,16 +13,17 @@ model User {
   name        String?
   password    String?
   chats       Chat[]
-  flashcards  Flashcard[]
-  quizzes     Quiz[]
-  spreadsheet Spreadsheet?
-  note        Note?
+  decks       Deck[]
+  quizzes     QuizSet[]
+  spreadsheet Spreadsheet[]
+  phrase      Phrase[]
+  note        Note[]
   overview    Overview?
 }
 
 model Chat {
   id          String   @id @default(uuid())
-  userId      String  
+  userId      String
   name        String
   description String
   messages    Message[]
@@ -38,42 +39,62 @@ model Message {
   chat      Chat     @relation(fields: [chatId], references: [id])
 }
 
+model Deck {
+  id         String   @id @default(uuid())
+  name       String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  flashcards Flashcard[]
+}
+
 model Flashcard {
-  id        String   @id @default(uuid())
-  groupId   String
-  userId    String  
-  question  String
-  answer    String
-  stats     String
-  user      User     @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  deckId     String
+  question   String
+  answer     String
+  stats      String
+  deck       Deck     @relation(fields: [deckId], references: [id])
+}
+
+model QuizSet {
+  id       String   @id @default(uuid())
+  name     String
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  quizzes  Quiz[]
 }
 
 model Quiz {
-  id        String   @id @default(uuid())
-  groupId   String
-  userId    String  
-  question  String
-  answer    String
-  optionA   String
-  optionB   String
-  optionC   String
-  optionD   String
-  user      User     @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  quizSetId  String
+  question   String
+  answer     String
+  optionA    String
+  optionB    String
+  optionC    String
+  optionD    String
+  quizSet    QuizSet  @relation(fields: [quizSetId], references: [id])
 }
 
 model Spreadsheet {
   id            String   @id @default(uuid()) @unique
-  groupId       String
-  userId        String   @unique 
-  question      String
+  userId        String
   word          String
+  translation   String
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Phrase {
+  id            String   @id @default(uuid()) @unique
+  userId        String
+  phrase        String
   translation   String
   user          User     @relation(fields: [userId], references: [id])
 }
 
 model Note {
   id            String   @id @default(uuid()) @unique
-  userId        String   @unique
+  userId        String
   content       String
   user          User     @relation(fields: [userId], references: [id])
 }
@@ -82,7 +103,7 @@ model Overview {
   id            String   @id @default(uuid()) @unique
   userId        String   @unique
   englishLevel  String
-  strengths     String
-  weaknesses    String
+  strengths     String[]
+  weaknesses    String[]
   user          User     @relation(fields: [userId], references: [id])
 }
