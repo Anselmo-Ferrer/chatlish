@@ -1,12 +1,11 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import { BsChatDots } from 'react-icons/bs'
 import { IoMdSend } from 'react-icons/io'
-import { FaTimes } from 'react-icons/fa'
 import Image from "next/image";
 import profileImage from "@/assets/imageProfile.jpeg"
 import { ScrollArea } from "./ui/scroll-area";
+import { Skeleton } from "./ui/skeleton";
 
 type ChatProps = {
   userId: string
@@ -17,15 +16,18 @@ export default function Chat({ userId, chatId }: ChatProps) {
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; message: string }[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingMessages, setLoadingMessages] = useState<boolean>(false)
 
   useEffect(() => {
     const handleGetMessages = async () => {
-       if (!chatId) return console.warn('userId não encontrado na URL')
+      if (!chatId) return console.warn('userId não encontrado na URL')
+      setLoadingMessages(true)
 
       const response = await fetch(`/api/messages?chatId=${chatId}`)
       const data = await response.json()
       console.log(data)
       setMessages(data.messages)
+      setLoadingMessages(false)
     }
 
     handleGetMessages()
@@ -74,6 +76,34 @@ export default function Chat({ userId, chatId }: ChatProps) {
       }),
     })
   }
+
+  if (!chatId) return (
+    <div className="w-1/2 h-4/5 flex flex-col justify-center items-center py-5 gap-3">
+      <h1 className="text-[30px] sm:text-[40px] md:text-[40px] lg:text-[50px] text-center font-extrabold leading-tight bg-gradient-to-r from-[#5067ff] via-[#6f82ff] to-[#fff] text-transparent bg-clip-text transition duration-500 transform hover:scale-105 hover:brightness-110">
+        Crie ou selecione um <br/>Chat
+      </h1>
+    </div>
+  )
+
+  if (loadingMessages) return (
+    <div className="w-1/2 h-4/5 flex flex-col items-center py-5 gap-3">
+      <div className="flex justify-end w-full gap-2 mt-5">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+      <div className="flex justify-start w-full gap-2 mt-5">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="flex flex-col w-full gap-1">
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-8 w-1/2" />
+        </div>
+      </div>
+      <div className="flex justify-end w-full gap-2 mt-5">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+    </div>
+  )
 
   return (
     <div className="w-1/2 flex flex-col py-5 gap-3">

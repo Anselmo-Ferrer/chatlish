@@ -1,65 +1,66 @@
-import { useSearchParams } from "next/navigation";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { LuCirclePlus } from "react-icons/lu";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { CiSquarePlus } from "react-icons/ci";
 import { useState } from "react";
 
-export default function CreateChat({ onChatCreated }: { onChatCreated: () => void }) {
+type CreateFlashcardProps = {
+  deckId: string
+}
 
-  const searchParams = useSearchParams()
-  const userId = searchParams.get('userId')
-  const [name, setName] = useState('')
-  const [desc, setDesc] = useState('')
+export default function CreateFlashcard({deckId}: CreateFlashcardProps) {
+  const [question, setQuestion] = useState<string>()
+  const [answer, setAnswer] = useState<string>() 
 
-  const handleCreateChat = async () => {
-    if (!userId) {
-      alert("ID do usuário não encontrado.")
-      return
-    }
+  const handleCreateFlashcard = async (deckId: string) => {
+    try {
+      const res = await fetch('/api/create-flashcard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deckId,
+          question,
+          answer
+        }),
+      })
 
-    const response = await fetch('/api/create-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, desc, userId })
-    })
+      if (!res.ok) {
+        console.error('Erro ao salvar flashcards')
+        return
+      }
 
-    const data = await response.json()
-    if (!response.ok) {
-      alert(`Erro: ${data.error}`)
-    } else {
-      console.log('Chat criado com sucesso:', data)
-      onChatCreated()
+      const saveData = await res.json()
+      console.log('Deck salvo com groupId:', saveData.groupId)
+    } catch (error) {
+      console.error('Erro na geração e salvamento do deck:', error)
     }
   }
 
-
   return (
     <Dialog>
-      <div className="group h-full aspect-square rounded-full p-[1px] transition-all duration-150 hover:bg-gradient-to-tr hover:from-[#5067ff] hover:via-gray-400/70 hover:to-[#5067ff]/90">
-        <DialogTrigger className="w-full p-2 h-full bg-[#181818] border border-[#2a2a2a] flex items-center justify-center rounded-full group-hover:bg-[#141414] transition-all duration-150 cursor-pointer">
+      <div className="group w-fit rounded-xl p-[1px] transition-all duration-150 hover:bg-gradient-to-tr hover:from-[#5067ff] hover:via-gray-400/70 hover:to-[#5067ff]/90">
+        <DialogTrigger className="flex items-center justify-center text-[14px] gap-1 px-4 w-fit bg-[#181818] border border-[#2a2a2a] rounded-xl py-2 group-hover:bg-[#141414] transition-all duration-150 cursor-pointer">
           <LuCirclePlus />
+          Create Flashcard
         </DialogTrigger>
       </div>
       <DialogContent className="border border-[#2a2a2a]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Create chat</DialogTitle>
+          <DialogTitle className="text-2xl">Create Flashcard</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col w-full gap-2">
           <div className="flex flex-col gap-2 mt-3">
-            <p>Name</p>
+            <p>Question</p>
             <input
-              id="name"
-              placeholder="Jonh"
-              onChange={(e) => setName(e.target.value)}
+              placeholder="Question"
+              onChange={(e) => setQuestion(e.target.value)}
               className="w-full px-4 py-2 border border-[#2a2a2a] rounded-md focus:outline-none focus:ring-0 hover:border-[#5067ff] focus:border-[#5067ff] transition-all duration-150 "
             />
           </div>
           <div className="flex flex-col gap-2 mt-3">
-            <p>Desc</p>
+            <p>Answer</p>
             <input
-              id="desc"
-              onChange={(e) => setDesc(e.target.value)}
-              placeholder="Description of your chat"
+              placeholder="Answer"
+              onChange={(e) => setAnswer(e.target.value)}
               className="w-full px-4 py-2 border border-[#2a2a2a] rounded-md focus:outline-none focus:ring-0 hover:border-[#5067ff] focus:border-[#5067ff] transition-all duration-150 "
             />
           </div>
@@ -69,7 +70,7 @@ export default function CreateChat({ onChatCreated }: { onChatCreated: () => voi
             <div className="flex w-full justify-end">
               <div className="group w-fit rounded-xl p-[1px] transition-all duration-300 hover:bg-gradient-to-tr hover:from-[#5067ff] hover:via-gray-400/70 hover:to-[#5067ff]/90">
                 <button
-                  onClick={() => handleCreateChat()}
+                  onClick={() => handleCreateFlashcard(deckId)}
                   className="flex items-center text-[14px] justify-center gap-1 w-fit bg-[#181818] border border-[#2a2a2a] rounded-xl py-2 px-5 group-hover:bg-[#141414] transition-all duration-300 cursor-pointer"
                 >
                   <CiSquarePlus size={20}/>
